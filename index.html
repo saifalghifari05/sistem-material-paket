@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Material + Paket</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d14;--surface:#16161f;--surface2:#1e1e2a;--border:#2a2a3a;
+  --accent:#6c63ff;--accent2:#00d4aa;--danger:#ff4d6d;--warn:#ffb830;
+  --text:#e8e8f0;--muted:#6b6b80;--inbound:#00d4aa;--outbound:#ff4d6d;
+  --paket:#a78bfa;--order:#f59e0b;--selesai:#00d4aa;--radius:10px;
+}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-weight:700;font-size:15px}.logo-sub{font-size:11px;color:var(--muted)}
+.url-badge{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:20px;color:var(--muted);cursor:pointer;transition:.2s;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.url-badge:hover{border-color:var(--accent);color:var(--accent)}.url-badge.connected{color:var(--accent2);border-color:var(--accent2)}
+.setup-banner{background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #2a2a5a;border-radius:var(--radius);padding:18px;margin:14px;display:flex;gap:14px}
+.setup-banner.hidden{display:none}
+.setup-icon{background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.setup-content{flex:1}.setup-content h3{font-size:13px;margin-bottom:5px}
+.setup-content p{font-size:12px;color:var(--muted);line-height:1.6}
+.url-row{display:flex;gap:8px;margin-top:10px}
+.url-row input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px}
+.url-row input:focus{outline:none;border-color:var(--accent)}
+.tabs{display:flex;gap:3px;padding:12px 16px 0;border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:8px 14px;border-radius:8px 8px 0 0;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);border:1px solid transparent;border-bottom:none;background:transparent;white-space:nowrap;font-family:'Sora',sans-serif;transition:.15s}
+.tab:hover{color:var(--text)}.tab.active{background:var(--surface);color:var(--accent);border-color:var(--border);border-bottom-color:var(--surface);margin-bottom:-1px}
+.content{padding:14px;max-width:980px;margin:0 auto}.panel{display:none}.panel.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.card-header{padding:11px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.card-header h3{font-size:13px;font-weight:600}.card-body{padding:14px 16px}
+.video-wrap{position:relative;background:#000;display:none}
+.video-wrap.show{display:block}
+#scanVideo{width:100%;max-height:260px;object-fit:cover;display:block}
+.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scan-frame{width:220px;height:100px;border:2px solid var(--accent2);border-radius:8px;box-shadow:0 0 0 2000px rgba(0,0,0,.5);position:relative;overflow:hidden}
+.scan-line{position:absolute;left:4px;right:4px;height:2px;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:sc 1.5s ease-in-out infinite}
+@keyframes sc{0%,100%{top:8px}50%{top:calc(100% - 12px)}}
+.cam-hint{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.6)}
+.input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;width:100%;transition:.2s}
+.input:focus{outline:none;border-color:var(--accent)}.input-mono{font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.5px}
+.input-lg{padding:10px 14px;font-size:14px;border-width:2px}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s;font-family:'Sora',sans-serif;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{opacity:.88;transform:translateY(-1px)}.btn:active{transform:scale(.97)}
+.btn-accent{background:var(--accent);color:#fff}.btn-in{background:var(--inbound);color:#000}
+.btn-out{background:var(--outbound);color:#fff}.btn-paket{background:var(--paket);color:#fff}
+.btn-order{background:var(--order);color:#000}.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:rgba(255,77,109,.15);color:var(--danger);border:1px solid rgba(255,77,109,.3)}
+.btn-sm{padding:5px 11px;font-size:11px}
+.mode-toggle{display:flex;gap:6px;flex-wrap:wrap}
+.mode-btn{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.2s;font-family:'Sora',sans-serif}
+.m-in{background:var(--inbound);color:#000;border-color:var(--inbound)}.m-out{background:var(--outbound);color:#fff;border-color:var(--outbound)}.m-order{background:var(--order);color:#000;border-color:var(--order)}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin:10px 0;display:none;align-items:flex-start;gap:8px;font-weight:500;line-height:1.6;white-space:pre-line}
+.alert.show{display:flex}
+.alert-ok{background:rgba(0,212,170,.12);color:var(--accent2);border:1px solid rgba(0,212,170,.25)}
+.alert-err{background:rgba(255,77,109,.12);color:var(--outbound);border:1px solid rgba(255,77,109,.25)}
+.alert-info{background:rgba(108,99,255,.12);color:var(--accent);border:1px solid rgba(108,99,255,.25)}
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:480px){.stat-strip{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px}
+.stat-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.stat-val{font-size:22px;font-weight:700}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filter-btn{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.2s;font-family:'Sora',sans-serif}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.search-bar{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:13px;margin-bottom:12px;font-family:'Sora',sans-serif}
+.search-bar:focus{outline:none;border-color:var(--accent)}
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.mat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;transition:.2s}
+.mat-card:hover{border-color:var(--accent)}.mat-card.low{border-left:3px solid var(--warn)}.mat-card.empty{border-left:3px solid var(--danger)}
+.mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:7px}
+.mc-name{font-weight:700;font-size:13px}
+.mc-cat{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap}
+.c-kain{background:rgba(108,99,255,.15);color:#9d96ff}.c-resletting{background:rgba(255,184,48,.15);color:#ffb830}
+.c-benang{background:rgba(0,212,170,.15);color:#00d4aa}.c-interlining{background:rgba(255,100,130,.15);color:#ff6482}.c-other{background:rgba(107,107,128,.15);color:#8888a0}
+.mc-bc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:8px}
+.mc-stok-row{display:flex;justify-content:space-between;align-items:flex-end}
+.mc-val{font-size:24px;font-weight:700;line-height:1}.mc-sat{font-size:11px;color:var(--muted)}
+.s-ok{color:var(--text)}.s-low{color:var(--warn)}.s-empty{color:var(--danger)}
+.paket-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.paket-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:.2s}
+.paket-card:hover{border-color:var(--paket)}
+.paket-card-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.paket-name{font-weight:700;font-size:14px}.paket-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.paket-body{padding:10px 14px}
+.paket-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.paket-item:last-child{border-bottom:none}
+.paket-item-qty{font-weight:600;color:var(--paket);font-family:'JetBrains Mono',monospace;font-size:12px}
+.paket-footer{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px}
+.order-grid{display:flex;flex-direction:column;gap:10px}
+.order-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.order-card.pending{border-left:3px solid var(--order)}.order-card.selesai{border-left:3px solid var(--selesai);opacity:.75}
+.order-card-body{padding:12px 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.order-bc{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--order);min-width:120px}
+.order-bc.selesai{color:var(--selesai)}
+.order-info{flex:1;min-width:120px}
+.order-nama{font-weight:700;font-size:14px}.order-ket{font-size:11px;color:var(--muted);margin-top:2px}
+.order-dates{font-size:11px;color:var(--muted);text-align:right;min-width:100px}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.status-pending{background:rgba(245,158,11,.15);color:var(--order)}.status-selesai{background:rgba(0,212,170,.15);color:var(--selesai)}
+.order-preview{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(251,191,36,.05));border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:14px;margin:10px 0;display:none}
+.order-preview.show{display:block}
+.op-header{font-size:13px;font-weight:700;color:var(--order);margin-bottom:8px}
+.op-item{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.op-item:last-child{border-bottom:none}
+.op-done{background:rgba(255,77,109,.06);border:1px solid rgba(255,77,109,.2);border-radius:10px;padding:14px;margin:10px 0;display:none}
+.op-done.show{display:block}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.form-grid{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.form-full{grid-column:1/-1}
+.mat-select-list{max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:8px}
+.mat-select-item{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.15s;border-bottom:1px solid rgba(255,255,255,.04)}
+.mat-select-item:last-child{border-bottom:none}.mat-select-item:hover{background:rgba(108,99,255,.1)}.mat-select-item.selected{background:rgba(108,99,255,.15)}
+.mis-name{font-weight:600;font-size:13px}.mis-info{font-size:11px;color:var(--muted)}.mis-check{color:var(--accent);font-size:16px;font-weight:700}
+.item-list{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:10px}
+.item-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.item-row:last-child{border-bottom:none}.item-nama{flex:1;font-size:13px;font-weight:600;min-width:100px}
+.item-qty-wrap{display:flex;align-items:center;gap:6px}
+.item-qty{width:72px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:13px;font-weight:600;text-align:center;font-family:'Sora',sans-serif}
+.item-sat{font-size:11px;color:var(--muted);min-width:36px}
+.item-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px}
+.trx-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--surface2);padding:8px 10px;text-align:left;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}tr:hover td{background:rgba(255,255,255,.02)}
+.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.b-in{background:rgba(0,212,170,.15);color:var(--inbound)}.b-out{background:rgba(255,77,109,.15);color:var(--outbound)}.b-order{background:rgba(245,158,11,.15);color:var(--order)}
+.empty-state{text-align:center;padding:36px 20px;color:var(--muted)}
+.empty-state div{font-size:34px;margin-bottom:10px}
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+/* ── BARCODE RESULT BOX ── */
+.barcode-result-box{background:#fff;border-radius:12px;padding:20px;margin-top:14px;display:none;text-align:center}
+.barcode-result-box.show{display:block}
+.barcode-result-box svg{max-width:100%;height:auto}
+.barcode-label{font-family:'JetBrains Mono',monospace;font-size:13px;color:#333;margin-top:8px;font-weight:700}
+.barcode-meta{font-size:12px;color:#666;margin-top:4px}
+.barcode-actions{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+
+/* ── PRINT AREA ── */
+@media print {
+  body * { visibility: hidden; }
+  #printArea, #printArea * { visibility: visible; }
+  #printArea {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    padding: 20px;
+  }
+  #printArea svg { width: 300px; height: auto; }
+  #printArea .print-label { font-family: monospace; font-size: 14px; font-weight: bold; margin-top: 8px; }
+  #printArea .print-meta  { font-size: 12px; color: #444; margin-top: 4px; }
+}
+
+/* ── ORDER CARDS BARCODE ICON ── */
+.order-barcode-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;padding:4px 8px;font-size:11px;transition:.2s;font-family:'Sora',sans-serif}
+.order-barcode-btn:hover{border-color:var(--order);color:var(--order)}
+</style>
+</head>
+<body>
+
+<!-- PRINT AREA (tersembunyi, hanya muncul saat print) -->
+<div id="printArea" style="display:none">
+  <svg id="printSvg"></svg>
+  <div class="print-label" id="printLabel"></div>
+  <div class="print-meta"  id="printMeta"></div>
+</div>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">📦</div>
+    <div><div class="logo-text">Material System</div><div class="logo-sub">Inbound · Outbound · Paket · Order</div></div>
+  </div>
+  <div class="url-badge" id="urlBadge" onclick="showSetup()">⚙ Hubungkan Google Sheets</div>
+</div>
+
+<div class="setup-banner" id="setupBanner">
+  <div class="setup-icon">!</div>
+  <div class="setup-content">
+    <h3>Hubungkan ke Google Sheets</h3>
+    <p>Masukkan URL Google Apps Script Web App (gunakan file <strong>GoogleAppsScript_v3.js</strong>).</p>
+    <div class="url-row">
+      <input type="url" id="gasInput" placeholder="https://script.google.com/macros/s/.../exec" />
+      <button class="btn btn-accent btn-sm" onclick="saveUrl()">Simpan</button>
+    </div>
+    <div id="connectAlert" class="alert"></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('scan',this)">⚡ Scan</button>
+  <button class="tab" onclick="switchTab('orders',this)">📋 Orders</button>
+  <button class="tab" onclick="switchTab('paket',this)">📦 Paket</button>
+  <button class="tab" onclick="switchTab('buat-paket',this)">✏️ Buat Paket</button>
+  <button class="tab" onclick="switchTab('stok',this)">📊 Stok</button>
+  <button class="tab" onclick="switchTab('transaksi',this)">🧾 Transaksi</button>
+  <button class="tab" onclick="switchTab('material',this)">📥 Stok & Material</button>
+</div>
+
+<div class="content">
+
+<!-- SCAN -->
+<div class="panel active" id="panel-scan">
+  <div class="card">
+    <div class="card-header">
+      <h3>Mode Scan</h3>
+      <div class="mode-toggle">
+        <button class="mode-btn m-in"    id="mIn"    onclick="setMode('IN')">▲ Inbound</button>
+        <button class="mode-btn"         id="mOut"   onclick="setMode('OUT')">▼ Outbound</button>
+        <button class="mode-btn"         id="mOrder" onclick="setMode('ORDER')">📋 Scan Order</button>
+      </div>
+    </div>
+    <div class="video-wrap" id="videoWrap">
+      <video id="scanVideo" autoplay muted playsinline webkit-playsinline></video>
+      <div class="scan-overlay"><div class="scan-frame"><div class="scan-line"></div></div></div>
+      <div class="cam-hint">Arahkan kamera ke barcode</div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" class="input input-mono input-lg" id="barcodeInput"
+          placeholder="Scan atau ketik barcode..." autocomplete="off"
+          oninput="onBcInput()" onkeydown="if(event.key==='Enter')processBarcode()"
+          style="flex:1;min-width:160px" />
+        <button class="btn btn-ghost btn-sm" id="camBtn" onclick="toggleCam()">📷 Kamera</button>
+      </div>
+      <div id="qtyRow" style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+        <input type="number" class="input" id="qtyInput" value="1" min="0.01" step="0.01" style="width:90px;font-weight:600" />
+        <span id="satuanDisp" style="color:var(--muted);font-size:12px;min-width:40px">—</span>
+        <input type="text" class="input" id="ketInput" placeholder="Keterangan (opsional)" style="flex:1;min-width:120px" />
+      </div>
+      <div id="matPreview" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Material Ditemukan</div>
+        <div id="pvNama" style="font-weight:700;font-size:15px"></div>
+        <div id="pvDetail" style="font-size:12px;color:var(--muted)"></div>
+      </div>
+      <div class="order-preview" id="orderPreview">
+        <div class="op-header">📋 <span id="opNama"></span> <span class="status-badge status-pending" style="font-size:10px">PENDING</span></div>
+        <div id="opItems"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">Semua material akan dipotong otomatis</div>
+      </div>
+      <div class="op-done" id="orderDone">
+        <div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:6px">⚠️ Order ini sudah pernah diproses!</div>
+        <div id="opDoneDetail" style="font-size:12px;color:var(--muted)"></div>
+      </div>
+      <div id="scanAlert" class="alert"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-in" id="submitBtn" onclick="processBarcode()" style="flex:1">▲ INBOUND</button>
+        <button class="btn btn-ghost" onclick="clearScan()">Reset</button>
+      </div>
+    </div>
+  </div>
+  <div class="stat-strip">
+    <div class="stat-card"><div class="stat-label">Total Material</div><div class="stat-val" id="sTotal">—</div></div>
+    <div class="stat-card"><div class="stat-label">Order Pending</div><div class="stat-val" style="color:var(--order)" id="sPending">—</div></div>
+    <div class="stat-card"><div class="stat-label">Stok Tipis</div><div class="stat-val" style="color:var(--warn)" id="sLow">—</div></div>
+    <div class="stat-card"><div class="stat-label">Stok Habis</div><div class="stat-val" style="color:var(--danger)" id="sEmpty">—</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3 style="color:var(--muted);font-size:12px">TRANSAKSI TERAKHIR</h3></div>
+    <div class="trx-wrap">
+      <table><thead><tr><th>Waktu</th><th>Nama</th><th>Tipe</th><th>Jumlah</th><th>Stok Akhir</th></tr></thead>
+      <tbody id="lastTrxBody"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Belum ada transaksi</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ORDERS -->
+<div class="panel" id="panel-orders">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div><div style="font-size:15px;font-weight:700">Daftar Order</div>
+    <div style="font-size:12px;color:var(--muted)">Setiap baju yang disiapkan untuk penjahit</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="loadData()">↻ Refresh</button>
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setOrderFilter(this,'all')">Semua</button>
+    <button class="filter-btn" onclick="setOrderFilter(this,'PENDING')">🟡 Pending</button>
+    <button class="filter-btn" onclick="setOrderFilter(this,'SELESAI')">✅ Selesai</button>
+  </div>
+  <div class="order-grid" id="orderGrid">
+    <div class="empty-state"><div>📋</div><p>Belum ada order.</p></div>
+  </div>
+</div>
+
+<!-- PAKET -->
+<div class="panel" id="panel-paket">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div><div style="font-size:15px;font-weight:700">Template Paket</div>
+    <div style="font-size:12px;color:var(--muted)">Klik "Buat Order" tiap kali siapkan baju untuk penjahit</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="loadData()">↻ Refresh</button>
+  </div>
+  <div class="paket-grid" id="paketGrid">
+    <div class="empty-state" style="grid-column:1/-1"><div>📦</div><p>Belum ada template.</p></div>
+  </div>
+</div>
+
+<!-- BUAT PAKET -->
+<div class="panel" id="panel-buat-paket">
+  <div class="card" style="max-width:640px">
+    <div class="card-header"><h3>✏️ Buat Template Paket Baru</h3></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group form-full"><label>Nama Paket / Model Baju</label>
+          <input type="text" class="input" id="pNama" placeholder="cth: Gamis Rafli, Kemeja Pria L" /></div>
+        <div class="form-group form-full"><label>Deskripsi</label>
+          <input type="text" class="input" id="pDesc" placeholder="cth: gamis lengan panjang warna hitam" /></div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Pilih Material</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <input type="text" class="input" id="matSearch" placeholder="🔍 Cari material..." oninput="renderMatSelect()" style="flex:1;min-width:140px" />
+        <select class="input" id="matCatFilter" onchange="renderMatSelect()" style="width:150px">
+          <option value="">Semua Kategori</option>
+          <option value="Kain">Kain</option><option value="Resletting">Resletting</option>
+          <option value="Benang">Benang</option><option value="Interlining">Interlining</option>
+        </select>
+      </div>
+      <div class="mat-select-list" id="matSelectList">
+        <div class="empty-state"><div style="font-size:24px">📦</div><p style="font-size:12px">Hubungkan Sheets dulu</p></div>
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Material Dipilih & Jumlah:</div>
+        <div id="selectedItems"><div style="font-size:12px;color:var(--muted);padding:10px;text-align:center">Belum ada material dipilih</div></div>
+      </div>
+      <div id="paketAlert" class="alert"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-paket" onclick="simpanPaket()" style="flex:1">💾 Simpan Template</button>
+        <button class="btn btn-ghost" onclick="clearPaketForm()">Bersihkan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STOK -->
+<div class="panel" id="panel-stok">
+  <input type="text" class="search-bar" id="searchInput" placeholder="🔍  Cari nama atau barcode..." oninput="renderStok()" />
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setFilter(this,'all')">Semua</button>
+    <button class="filter-btn" onclick="setFilter(this,'Kain')">Kain</button>
+    <button class="filter-btn" onclick="setFilter(this,'Resletting')">Resletting</button>
+    <button class="filter-btn" onclick="setFilter(this,'Benang')">Benang</button>
+    <button class="filter-btn" onclick="setFilter(this,'Interlining')">Interlining</button>
+  </div>
+  <div class="mat-grid" id="materialGrid">
+    <div class="empty-state" style="grid-column:1/-1"><div>📦</div><p>Hubungkan Google Sheets dulu.</p></div>
+  </div>
+</div>
+
+<!-- TRANSAKSI -->
+<div class="panel" id="panel-transaksi">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:13px;color:var(--muted)">50 transaksi terakhir</div>
+    <button class="btn btn-ghost btn-sm" onclick="loadData()">↻ Refresh</button>
+  </div>
+  <div class="card">
+    <div class="trx-wrap">
+      <table><thead><tr><th>#</th><th>Waktu</th><th>Barcode</th><th>Nama</th><th>Tipe</th><th>Jumlah</th><th>Stok Akhir</th><th>Keterangan</th></tr></thead>
+      <tbody id="trxBody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px">Belum ada data</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- MATERIAL -->
+<div class="panel" id="panel-material">
+
+  <!-- TAMBAH STOK -->
+  <div class="card" style="max-width:540px;margin-bottom:20px">
+    <div class="card-header">
+      <h3>▲ Tambah Stok Material</h3>
+      <span style="font-size:11px;color:var(--muted)">Stok masuk / inbound</span>
+    </div>
+    <div class="card-body">
+      <!-- Cari material -->
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Cari & Pilih Material</label>
+        <input type="text" class="input" id="stokSearch" placeholder="🔍 Ketik nama material..." oninput="filterStokList()" />
+      </div>
+      <div id="stokMatList" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:12px">
+        <div style="padding:12px;text-align:center;font-size:12px;color:var(--muted)">Ketik nama untuk mencari material</div>
+      </div>
+
+      <!-- Material terpilih -->
+      <div id="stokSelected" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Material Dipilih</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div id="stokSelNama" style="font-weight:700;font-size:14px"></div>
+            <div id="stokSelInfo" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearStokSelected()">✕ Ganti</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Jumlah Masuk</label>
+          <input type="number" class="input" id="stokQty" placeholder="0" min="0.01" step="0.01" value="" />
+        </div>
+        <div class="form-group">
+          <label>Keterangan</label>
+          <input type="text" class="input" id="stokKet" placeholder="cth: Pembelian baru, retur, dll" />
+        </div>
+      </div>
+      <div id="stokAlert" class="alert"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-in" onclick="tambahStok()" style="flex:1">▲ Tambah Stok</button>
+        <button class="btn btn-ghost" onclick="resetFormStok()">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAMBAH MATERIAL BARU -->
+  <div class="card" style="max-width:540px">
+    <div class="card-header">
+      <h3>➕ Tambah Material Baru</h3>
+      <span style="font-size:11px;color:var(--muted)">Daftarkan material yang belum ada</span>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group form-full"><label>Barcode Material</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="input input-mono" id="fBarcode" placeholder="Scan atau ketik barcode" style="flex:1" />
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('fBarcode').value=genCode('MAT')">🎲 Auto</button>
+          </div>
+        </div>
+        <div class="form-group"><label>Nama Material</label><input type="text" class="input" id="fNama" placeholder="cth: Kain Katun Hitam 60s" /></div>
+        <div class="form-group"><label>Kategori</label>
+          <select class="input" id="fKat"><option value="Kain">Kain</option><option value="Resletting">Resletting</option><option value="Benang">Benang</option><option value="Interlining">Interlining</option><option value="Lainnya">Lainnya</option></select>
+        </div>
+        <div class="form-group"><label>Satuan</label>
+          <select class="input" id="fSat"><option value="Meter">Meter</option><option value="Yard">Yard</option><option value="Pcs">Pcs</option><option value="Lusin">Lusin</option><option value="Gulung">Gulung</option><option value="Kg">Kg</option><option value="Cone">Cone</option></select>
+        </div>
+        <div class="form-group"><label>Stok Awal</label><input type="number" class="input" id="fStok" value="0" min="0" step="0.01" /></div>
+      </div>
+      <div id="addAlert" class="alert"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-accent" onclick="tambahMaterial()" style="flex:1">Simpan</button>
+        <button class="btn btn-ghost" onclick="['fBarcode','fNama','fStok'].forEach(id=>document.getElementById(id).value='')">Bersihkan</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL BUAT ORDER -->
+<div id="orderModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:440px;width:100%;margin:auto">
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px">📋 Buat Order Baru</div>
+    <div id="modalPaketNama" style="font-size:13px;color:var(--muted);margin-bottom:16px"></div>
+    <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Keterangan (opsional)</div>
+    <input type="text" class="input" id="orderKet" placeholder="cth: Nama penjahit, ukuran, warna" />
+
+    <!-- BARCODE RESULT -->
+    <div class="barcode-result-box" id="barcodeResultBox">
+      <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">✅ Order Dibuat — Scan Barcode Ini:</div>
+      <svg id="barcodesvg"></svg>
+      <div class="barcode-label" id="barcodeLabel"></div>
+      <div class="barcode-meta"  id="barcodeMeta"></div>
+      <div class="barcode-actions">
+        <button class="btn btn-sm" style="background:#6c63ff;color:#fff" onclick="cetakBarcode()">🖨 Cetak</button>
+        <button class="btn btn-sm" style="background:#f0f0f0;color:#333" onclick="downloadBarcode()">⬇ Simpan Gambar</button>
+        <button class="btn btn-sm" style="background:#f0f0f0;color:#333" onclick="copyBarcodeText()">📋 Salin Kode</button>
+      </div>
+    </div>
+
+    <div id="modalAlert" class="alert"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-order" id="modalBuatBtn" onclick="konfirmasiBuatOrder()" style="flex:1">Buat Order</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- JsBarcode library -->
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let GAS_URL='', currentMode='IN', allMaterials=[], allTrx=[], allPakets=[], allOrders=[];
+let currentFilter='all', orderFilter='all', selectedItems={}, bcTO=null;
+let modalBarcodePaket='', lastOrderBarcode='', lastOrderNama='';
+let mediaStream=null, scanTimer=null, barcodeDetector=null, cameraActive=false;
+let lastDetected='', lastDetectedTime=0;
+
+// ── BARCODE GENERATOR ─────────────────────────────────────────
+function renderBarcode(code, svgId) {
+  try {
+    JsBarcode('#'+svgId, code, {
+      format: 'CODE128',
+      width: 2.2,
+      height: 70,
+      displayValue: true,
+      fontSize: 14,
+      fontOptions: 'bold',
+      margin: 10,
+      background: '#ffffff',
+      lineColor: '#000000'
+    });
+    return true;
+  } catch(e) {
+    console.warn('Barcode error:', e);
+    return false;
+  }
+}
+
+function cetakBarcode() {
+  // Salin svg ke print area
+  const src = document.getElementById('barcodesvg');
+  const dst = document.getElementById('printSvg');
+  dst.innerHTML = src.innerHTML;
+  dst.setAttribute('viewBox', src.getAttribute('viewBox') || '0 0 300 120');
+  dst.style.width = '300px';
+  document.getElementById('printLabel').textContent = lastOrderBarcode;
+  document.getElementById('printMeta').textContent  = lastOrderNama;
+  document.getElementById('printArea').style.display = 'flex';
+  window.print();
+  document.getElementById('printArea').style.display = 'none';
+}
+
+function downloadBarcode() {
+  const svg   = document.getElementById('barcodesvg');
+  const data  = new XMLSerializer().serializeToString(svg);
+  const blob  = new Blob([data], {type:'image/svg+xml'});
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement('a');
+  a.href      = url;
+  a.download  = 'barcode-'+lastOrderBarcode+'.svg';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyBarcodeText() {
+  navigator.clipboard.writeText(lastOrderBarcode).then(()=>{
+    const btn = event.target;
+    btn.textContent='✓ Disalin!';
+    setTimeout(()=>btn.textContent='📋 Salin Kode',2000);
+  });
+}
+
+// Tampilkan barcode di order card
+function showOrderBarcode(barcodeOrder, namaPaket) {
+  lastOrderBarcode = barcodeOrder;
+  lastOrderNama    = namaPaket;
+  document.getElementById('modalPaketNama').textContent = 'Paket: ' + namaPaket;
+  document.getElementById('barcodeLabel').textContent   = barcodeOrder;
+  document.getElementById('barcodeMeta').textContent    = namaPaket;
+  document.getElementById('barcodeResultBox').classList.add('show');
+  document.getElementById('modalBuatBtn').style.display = 'none';
+  document.getElementById('modalAlert').className = 'alert';
+  document.getElementById('orderModal').style.display   = 'flex';
+  // Render setelah modal tampil
+  setTimeout(()=>renderBarcode(barcodeOrder, 'barcodesvg'), 100);
+}
+
+// ── KAMERA ────────────────────────────────────────────────────
+if ('BarcodeDetector' in window) {
+  try { barcodeDetector = new BarcodeDetector({ formats:['code_128','ean_13','ean_8','code_39','upc_a','upc_e','qr_code'] }); }
+  catch(e) {}
+}
+
+async function toggleCam() {
+  if (!cameraActive) await startCamera();
+  else stopCamera();
+}
+
+async function startCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    showAlert('scanAlert','alert-err','Browser tidak mendukung kamera. Gunakan Chrome atau Safari terbaru.');
+    return;
+  }
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} }, audio:false
+    });
+    const video = document.getElementById('scanVideo');
+    video.srcObject = mediaStream;
+    await video.play();
+    document.getElementById('videoWrap').classList.add('show');
+    document.getElementById('camBtn').textContent = '✕ Stop';
+    cameraActive = true;
+    clearAlert('scanAlert');
+    setTimeout(startScanLoop, 800);
+  } catch(err) {
+    let msg = 'Kamera tidak bisa dibuka.';
+    if (err.name==='NotAllowedError')  msg = 'Izin kamera ditolak. Buka Pengaturan browser → izinkan kamera untuk situs ini.';
+    if (err.name==='NotFoundError')    msg = 'Kamera tidak ditemukan.';
+    if (err.name==='NotReadableError') msg = 'Kamera sedang dipakai aplikasi lain.';
+    showAlert('scanAlert','alert-err', msg);
+    stopCamera();
+  }
+}
+
+function stopCamera() {
+  mediaStream?.getTracks().forEach(t=>t.stop());
+  mediaStream = null;
+  clearInterval(scanTimer); scanTimer = null;
+  cameraActive = false;
+  document.getElementById('videoWrap').classList.remove('show');
+  document.getElementById('camBtn').textContent = '📷 Kamera';
+  document.getElementById('scanVideo').srcObject = null;
+}
+
+function startScanLoop() {
+  if (scanTimer) return;
+  const video = document.getElementById('scanVideo');
+  if (barcodeDetector) {
+    scanTimer = setInterval(async()=>{
+      if (!cameraActive||video.readyState<2||video.paused) return;
+      try {
+        const results = await barcodeDetector.detect(video);
+        if (results.length) handleDetected(results[0].rawValue);
+      } catch(e){}
+    }, 250);
+  } else {
+    showAlert('scanAlert','alert-info','Browser ini tidak mendukung scan otomatis. Ketik barcode secara manual atau gunakan scanner fisik.');
+  }
+}
+
+function handleDetected(code) {
+  if (!code) return;
+  const now = Date.now();
+  if (code===lastDetected && now-lastDetectedTime<2500) return;
+  lastDetected=code; lastDetectedTime=now;
+  document.getElementById('barcodeInput').value = code;
+  lookupBarcode();
+  if (currentMode==='ORDER') {
+    const o = allOrders.find(x=>String(x.barcodeOrder)===code);
+    if (!o||o.status!=='SELESAI') setTimeout(processBarcode, 700);
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+window.onload = ()=>{
+  GAS_URL = localStorage.getItem('gasUrl')||'';
+  if (GAS_URL) { document.getElementById('setupBanner').classList.add('hidden'); setBadge('✓ Sheets terhubung',true); loadData(); }
+  document.getElementById('barcodeInput').focus();
+};
+
+function showSetup(){ document.getElementById('setupBanner').classList.toggle('hidden'); }
+function saveUrl(){
+  const v=document.getElementById('gasInput').value.trim();
+  if(!v.startsWith('https://script.google.com')){showAlert('connectAlert','alert-err','URL tidak valid');return;}
+  GAS_URL=v; localStorage.setItem('gasUrl',GAS_URL); setBadge('✓ Sheets terhubung',true);
+  showAlert('connectAlert','alert-ok','✓ Terhubung! Memuat data...');
+  setTimeout(()=>{document.getElementById('setupBanner').classList.add('hidden');loadData();},1000);
+}
+function setBadge(t,c){const b=document.getElementById('urlBadge');b.textContent=t;b.className='url-badge'+(c?' connected':'');}
+
+function switchTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active'); document.getElementById('panel-'+id).classList.add('active');
+  if(['stok','transaksi','paket','orders'].includes(id)) loadData();
+  if(id==='buat-paket') renderMatSelect();
+}
+
+function setMode(mode){
+  currentMode=mode;
+  document.getElementById('mIn').className    ='mode-btn'+(mode==='IN'?    ' m-in':'');
+  document.getElementById('mOut').className   ='mode-btn'+(mode==='OUT'?   ' m-out':'');
+  document.getElementById('mOrder').className ='mode-btn'+(mode==='ORDER'? ' m-order':'');
+  const sb=document.getElementById('submitBtn'),qr=document.getElementById('qtyRow');
+  if(mode==='IN')    {sb.className='btn btn-in';    sb.textContent='▲ INBOUND'; qr.style.display='flex';}
+  if(mode==='OUT')   {sb.className='btn btn-out';   sb.textContent='▼ OUTBOUND';qr.style.display='flex';}
+  if(mode==='ORDER') {sb.className='btn btn-order'; sb.textContent='📋 Proses Order';qr.style.display='none';}
+  clearAlert('scanAlert'); clearPreviews(); document.getElementById('barcodeInput').value='';
+}
+
+function onBcInput(){clearTimeout(bcTO);bcTO=setTimeout(lookupBarcode,400);}
+function lookupBarcode(){
+  const bc=document.getElementById('barcodeInput').value.trim();
+  if(!bc){clearPreviews();return;}
+  if(currentMode==='ORDER'){
+    const o=allOrders.find(x=>String(x.barcodeOrder)===bc);
+    if(o){
+      if(o.status==='SELESAI'){
+        document.getElementById('opDoneDetail').textContent='Paket: '+o.namaPaket+'\nSelesai: '+o.tanggalProses;
+        document.getElementById('orderDone').classList.add('show');
+        document.getElementById('orderPreview').classList.remove('show');
+        document.getElementById('matPreview').style.display='none';
+        showAlert('scanAlert','alert-err','⚠️ Order ini sudah selesai diproses!');
+      } else {
+        const p=allPakets.find(x=>String(x.barcode)===String(o.barcodePaket));
+        document.getElementById('opNama').textContent=o.namaPaket+(o.keterangan&&o.keterangan!=='-'?' — '+o.keterangan:'');
+        document.getElementById('opItems').innerHTML=(p?p.items:[]).map(i=>`<div class="op-item"><span>${i.namaMatrial}</span><span style="font-weight:600;color:var(--order)">${i.jumlah} ${i.satuan}</span></div>`).join('');
+        document.getElementById('orderPreview').classList.add('show');
+        document.getElementById('orderDone').classList.remove('show');
+        document.getElementById('matPreview').style.display='none';
+        clearAlert('scanAlert');
+      }
+    } else clearPreviews();
+  } else {
+    const m=allMaterials.find(x=>String(x.barcode)===bc);
+    if(m){
+      document.getElementById('pvNama').textContent=m.nama;
+      document.getElementById('pvDetail').textContent=m.kategori+' · Stok: '+m.stok+' '+m.satuan;
+      document.getElementById('satuanDisp').textContent=m.satuan;
+      document.getElementById('matPreview').style.display='block';
+      document.getElementById('orderPreview').classList.remove('show');
+      document.getElementById('orderDone').classList.remove('show');
+    } else clearPreviews();
+  }
+}
+function clearPreviews(){
+  document.getElementById('matPreview').style.display='none';
+  document.getElementById('orderPreview').classList.remove('show');
+  document.getElementById('orderDone').classList.remove('show');
+  document.getElementById('satuanDisp').textContent='—';
+}
+
+async function processBarcode(){
+  const bc=document.getElementById('barcodeInput').value.trim();
+  const qty=parseFloat(document.getElementById('qtyInput').value);
+  const ket=document.getElementById('ketInput').value.trim();
+  if(!bc){showAlert('scanAlert','alert-err','Masukkan barcode dulu');return;}
+  if(!GAS_URL){showAlert('scanAlert','alert-err','Google Sheets belum terhubung');return;}
+  if(currentMode==='ORDER'){
+    const o=allOrders.find(x=>String(x.barcodeOrder)===bc);
+    if(o&&o.status==='SELESAI'){showAlert('scanAlert','alert-err','⚠️ Order sudah selesai!\nSelesai: '+o.tanggalProses);return;}
+    showAlert('scanAlert','alert-info','⏳ Memproses order...');
+    try{
+      const res=await gasPost({action:'scanOrder',barcodeOrder:bc,keterangan:ket});
+      if(res.status==='ok'){showAlert('scanAlert','alert-ok','✅ '+res.message);clearScan();loadData();}
+      else showAlert('scanAlert','alert-err',res.message);
+    }catch(e){showAlert('scanAlert','alert-err','Gagal terhubung ke Sheets');}
+    return;
+  }
+  if(!qty||qty<=0){showAlert('scanAlert','alert-err','Jumlah harus lebih dari 0');return;}
+  showAlert('scanAlert','alert-info','⏳ Memproses...');
+  try{
+    const res=await gasPost({action:currentMode==='IN'?'inbound':'outbound',barcode:bc,jumlah:qty,keterangan:ket});
+    if(res.status==='ok'){showAlert('scanAlert','alert-ok','✓ '+res.message);clearScan();loadData();}
+    else showAlert('scanAlert','alert-err','✗ '+res.message);
+  }catch(e){showAlert('scanAlert','alert-err','Gagal terhubung ke Sheets');}
+}
+function clearScan(){
+  document.getElementById('barcodeInput').value='';document.getElementById('qtyInput').value='1';document.getElementById('ketInput').value='';
+  clearPreviews();clearAlert('scanAlert');document.getElementById('barcodeInput').focus();
+}
+
+async function loadData(){
+  if(!GAS_URL)return;
+  try{
+    const res=await gasGet('getAll');
+    if(res.status==='ok'){
+      allMaterials=res.materials||[];allTrx=res.transactions||[];allPakets=res.pakets||[];allOrders=res.orders||[];
+      renderStats();renderStok();renderTrx();renderLastTrx();renderPakets();renderOrders();renderMatSelect();
+    }
+  }catch(e){console.warn('Load gagal',e);}
+}
+function renderStats(){
+  document.getElementById('sTotal').textContent=allMaterials.length;
+  document.getElementById('sPending').textContent=allOrders.filter(o=>o.status==='PENDING').length;
+  document.getElementById('sLow').textContent=allMaterials.filter(m=>parseFloat(m.stok)>0&&parseFloat(m.stok)<=10).length;
+  document.getElementById('sEmpty').textContent=allMaterials.filter(m=>parseFloat(m.stok)<=0).length;
+}
+function renderStok(){
+  const q=(document.getElementById('searchInput')?.value||'').toLowerCase();
+  let data=allMaterials;
+  if(currentFilter!=='all')data=data.filter(m=>m.kategori===currentFilter);
+  if(q)data=data.filter(m=>m.nama.toLowerCase().includes(q)||String(m.barcode).toLowerCase().includes(q));
+  const grid=document.getElementById('materialGrid');
+  if(!data.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div>🔍</div><p>Tidak ditemukan</p></div>';return;}
+  const cm={'Kain':'c-kain','Resletting':'c-resletting','Benang':'c-benang','Interlining':'c-interlining'};
+  grid.innerHTML=data.map(m=>{const s=parseFloat(m.stok)||0,cls=s<=0?'empty':s<=10?'low':'',sc=s<=0?'s-empty':s<=10?'s-low':'s-ok',cc=cm[m.kategori]||'c-other';
+    return`<div class="mat-card ${cls}"><div class="mc-top"><div class="mc-name">${m.nama}</div><div class="mc-cat ${cc}">${m.kategori}</div></div><div class="mc-bc">${m.barcode}</div><div class="mc-stok-row"><div><span class="mc-val ${sc}">${s%1===0?s:s.toFixed(2)}</span> <span class="mc-sat">${m.satuan}</span></div>${s<=0?'<span style="font-size:10px;color:var(--danger);font-weight:700">HABIS</span>':s<=10?'<span style="font-size:10px;color:var(--warn);font-weight:700">TIPIS</span>':''}</div></div>`;
+  }).join('');
+}
+function setFilter(el,v){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');currentFilter=v;renderStok();}
+
+function setOrderFilter(el,v){document.querySelectorAll('#panel-orders .filter-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');orderFilter=v;renderOrders();}
+function renderOrders(){
+  let data=allOrders;
+  if(orderFilter!=='all')data=data.filter(o=>o.status===orderFilter);
+  const grid=document.getElementById('orderGrid');
+  if(!data.length){grid.innerHTML='<div class="empty-state"><div>📋</div><p>Belum ada order.</p></div>';return;}
+  grid.innerHTML=data.map(o=>{const ip=o.status==='PENDING';
+    return`<div class="order-card ${ip?'pending':'selesai'}"><div class="order-card-body">
+      <div class="order-bc ${ip?'':'selesai'}">${o.barcodeOrder}</div>
+      <div class="order-info"><div class="order-nama">${o.namaPaket}</div>
+        <div class="order-ket">${o.keterangan&&o.keterangan!=='-'?o.keterangan:''}</div>
+        <span class="status-badge ${ip?'status-pending':'status-selesai'}" style="margin-top:4px;display:inline-flex">${ip?'🟡 PENDING':'✅ SELESAI'}</span>
+      </div>
+      <div class="order-dates"><div>Dibuat: ${o.tanggalBuat}</div>${!ip?`<div style="color:var(--selesai);margin-top:3px">Selesai: ${o.tanggalProses}</div>`:''}</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${ip?`<button class="order-barcode-btn" onclick="showOrderBarcode('${o.barcodeOrder}','${o.namaPaket.replace(/'/g,"\\'")}')">🔲 Barcode</button>`:''}
+        ${ip?`<button class="btn btn-danger btn-sm" onclick="hapusOrder('${o.barcodeOrder}')">🗑</button>`:''}
+      </div>
+    </div></div>`;
+  }).join('');
+}
+async function hapusOrder(bc){
+  if(!confirm('Hapus order ini?'))return;
+  try{const r=await gasPost({action:'hapusOrder',barcodeOrder:bc});if(r.status==='ok')loadData();}catch(e){}
+}
+
+function renderPakets(){
+  const grid=document.getElementById('paketGrid');
+  if(!allPakets.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div>📦</div><p>Belum ada template.</p></div>';return;}
+  grid.innerHTML=allPakets.map(p=>`<div class="paket-card">
+    <div class="paket-card-header"><div>
+      <div class="paket-name">${p.nama}</div>
+      ${p.deskripsi&&p.deskripsi!=='-'?`<div class="paket-desc">${p.deskripsi}</div>`:''}
+    </div><span style="background:rgba(167,139,250,.15);color:var(--paket);font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">${(p.items||[]).length} item</span></div>
+    <div class="paket-body">${(p.items||[]).map(i=>`<div class="paket-item"><span>${i.namaMatrial}</span><span class="paket-item-qty">${i.jumlah} ${i.satuan}</span></div>`).join('')}</div>
+    <div class="paket-footer">
+      <button class="btn btn-order btn-sm" style="flex:1" onclick="openModal('${p.barcode}','${p.nama.replace(/'/g,"\\'")}')">📋 Buat Order</button>
+      <button class="btn btn-danger btn-sm" onclick="hapusPaket('${p.barcode}','${p.nama.replace(/'/g,"\\'")}')">🗑</button>
+    </div>
+  </div>`).join('');
+}
+async function hapusPaket(bc,nama){
+  if(!confirm('Hapus template "'+nama+'"?'))return;
+  try{const r=await gasPost({action:'deletePaket',barcode:bc});if(r.status==='ok')loadData();}catch(e){}
+}
+
+// ── MODAL ORDER ───────────────────────────────────────────────
+function openModal(bp,np){
+  modalBarcodePaket=bp;
+  document.getElementById('modalPaketNama').textContent='Template: '+np;
+  document.getElementById('orderKet').value='';
+  document.getElementById('barcodeResultBox').classList.remove('show');
+  document.getElementById('modalBuatBtn').style.display='inline-flex';
+  clearAlert('modalAlert');
+  document.getElementById('orderModal').style.display='flex';
+}
+function closeModal(){document.getElementById('orderModal').style.display='none';loadData();}
+
+async function konfirmasiBuatOrder(){
+  if(!GAS_URL){showAlert('modalAlert','alert-err','Google Sheets belum terhubung');return;}
+  showAlert('modalAlert','alert-info','⏳ Membuat order...');
+  try{
+    const res=await gasPost({action:'buatOrder',barcodePaket:modalBarcodePaket,keterangan:document.getElementById('orderKet').value.trim()});
+    if(res.status==='ok'){
+      lastOrderBarcode=res.barcodeOrder;
+      lastOrderNama=res.namaPaket;
+      clearAlert('modalAlert');
+      document.getElementById('barcodeResultBox').classList.add('show');
+      document.getElementById('barcodeLabel').textContent=res.barcodeOrder;
+      document.getElementById('barcodeMeta').textContent=res.namaPaket;
+      document.getElementById('modalBuatBtn').style.display='none';
+      setTimeout(()=>renderBarcode(res.barcodeOrder,'barcodesvg'),100);
+    } else showAlert('modalAlert','alert-err','✗ '+res.message);
+  }catch(e){showAlert('modalAlert','alert-err','Gagal terhubung ke Sheets');}
+}
+
+// ── BUAT PAKET ────────────────────────────────────────────────
+function renderMatSelect(){
+  const q=(document.getElementById('matSearch')?.value||'').toLowerCase();
+  const cat=document.getElementById('matCatFilter')?.value||'';
+  let data=allMaterials;
+  if(cat)data=data.filter(m=>m.kategori===cat);
+  if(q)data=data.filter(m=>m.nama.toLowerCase().includes(q)||String(m.barcode).toLowerCase().includes(q));
+  const list=document.getElementById('matSelectList');
+  if(!allMaterials.length){list.innerHTML='<div class="empty-state"><div style="font-size:24px">📦</div><p style="font-size:12px">Hubungkan Sheets dulu</p></div>';return;}
+  if(!data.length){list.innerHTML='<div class="empty-state"><div style="font-size:24px">🔍</div><p style="font-size:12px">Tidak ditemukan</p></div>';return;}
+  list.innerHTML=data.map(m=>{const sel=!!selectedItems[m.barcode];
+    return`<div class="mat-select-item${sel?' selected':''}" onclick="toggleMat('${m.barcode}','${m.nama.replace(/'/g,"\\'")}','${m.satuan}')">
+      <div><div class="mis-name">${m.nama}</div><div class="mis-info">${m.kategori} · Stok: ${m.stok} ${m.satuan}</div></div>
+      <span class="mis-check">${sel?'✓':''}</span>
+    </div>`;
+  }).join('');
+}
+function toggleMat(bc,nama,satuan){
+  if(selectedItems[bc])delete selectedItems[bc];else selectedItems[bc]={nama,satuan,jumlah:1};
+  renderMatSelect();renderSelectedItems();
+}
+function renderSelectedItems(){
+  const wrap=document.getElementById('selectedItems'),keys=Object.keys(selectedItems);
+  if(!keys.length){wrap.innerHTML='<div style="font-size:12px;color:var(--muted);padding:10px;text-align:center">Belum ada material dipilih</div>';return;}
+  wrap.innerHTML='<div class="item-list">'+keys.map(bc=>{const it=selectedItems[bc];
+    return`<div class="item-row"><div class="item-nama">${it.nama}</div>
+      <div class="item-qty-wrap"><input type="number" class="item-qty" value="${it.jumlah}" min="0.01" step="0.01" oninput="selectedItems['${bc}'].jumlah=parseFloat(this.value)||1"/>
+      <span class="item-sat">${it.satuan}</span></div>
+      <button class="item-del" onclick="delete selectedItems['${bc}'];renderMatSelect();renderSelectedItems()">✕</button>
+    </div>`;
+  }).join('')+'</div>';
+}
+async function simpanPaket(){
+  const nama=document.getElementById('pNama').value.trim(),desc=document.getElementById('pDesc').value.trim();
+  if(!nama){showAlert('paketAlert','alert-err','Nama paket wajib diisi');return;}
+  const keys=Object.keys(selectedItems);
+  if(!keys.length){showAlert('paketAlert','alert-err','Pilih minimal 1 material');return;}
+  if(!GAS_URL){showAlert('paketAlert','alert-err','Google Sheets belum terhubung');return;}
+  const barcode='TPL-'+Date.now().toString(36).toUpperCase().slice(-8);
+  const items=keys.map(bc=>({barcodeMatrial:bc,namaMatrial:selectedItems[bc].nama,jumlah:selectedItems[bc].jumlah,satuan:selectedItems[bc].satuan}));
+  showAlert('paketAlert','alert-info','⏳ Menyimpan...');
+  try{const res=await gasPost({action:'addPaket',paket:{barcode,nama,deskripsi:desc},items});
+    if(res.status==='ok'){showAlert('paketAlert','alert-ok','✓ '+res.message);clearPaketForm();loadData();}
+    else showAlert('paketAlert','alert-err','✗ '+res.message);
+  }catch(e){showAlert('paketAlert','alert-err','Gagal terhubung ke Sheets');}
+}
+function clearPaketForm(){['pNama','pDesc'].forEach(id=>document.getElementById(id).value='');selectedItems={};renderSelectedItems();renderMatSelect();}
+
+function renderTrx(){
+  const tb=document.getElementById('trxBody');
+  if(!allTrx.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px">Belum ada data</td></tr>';return;}
+  const isO=t=>t.keterangan&&t.keterangan.startsWith('ORDER:');
+  tb.innerHTML=allTrx.map(t=>`<tr><td style="color:var(--muted)">${t.no}</td><td style="font-size:11px;color:var(--muted)">${t.waktu}</td>
+    <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px">${t.barcode}</span></td>
+    <td style="font-weight:600">${t.nama}</td>
+    <td><span class="badge ${t.tipe==='INBOUND'?'b-in':isO(t)?'b-order':'b-out'}">${isO(t)?'ORDER':t.tipe}</span></td>
+    <td style="font-weight:600">${parseFloat(t.jumlah).toFixed(2)} ${t.satuan}</td>
+    <td>${parseFloat(t.stokSetelah).toFixed(2)} ${t.satuan}</td>
+    <td style="color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis">${t.keterangan}</td></tr>`).join('');
+}
+function renderLastTrx(){
+  const tb=document.getElementById('lastTrxBody'),rec=allTrx.slice(0,5);
+  if(!rec.length)return;
+  const isO=t=>t.keterangan&&t.keterangan.startsWith('ORDER:');
+  tb.innerHTML=rec.map(t=>`<tr><td style="font-size:11px;color:var(--muted)">${t.waktu}</td>
+    <td style="font-weight:600">${t.nama}</td>
+    <td><span class="badge ${t.tipe==='INBOUND'?'b-in':isO(t)?'b-order':'b-out'}">${isO(t)?'ORDER':t.tipe}</span></td>
+    <td>${parseFloat(t.jumlah).toFixed(2)} ${t.satuan}</td>
+    <td style="font-family:'JetBrains Mono',monospace">${parseFloat(t.stokSetelah).toFixed(2)}</td></tr>`).join('');
+}
+
+// ── TAMBAH STOK ───────────────────────────────────────────────
+let selectedStokBarcode = '';
+
+function filterStokList(){
+  const q = (document.getElementById('stokSearch').value || '').toLowerCase();
+  const list = document.getElementById('stokMatList');
+  if (!q) {
+    list.innerHTML='<div style="padding:12px;text-align:center;font-size:12px;color:var(--muted)">Ketik nama untuk mencari material</div>';
+    return;
+  }
+  const data = allMaterials.filter(m =>
+    m.nama.toLowerCase().includes(q) || m.kategori.toLowerCase().includes(q)
+  );
+  if (!data.length) {
+    list.innerHTML='<div style="padding:12px;text-align:center;font-size:12px;color:var(--muted)">Tidak ditemukan</div>';
+    return;
+  }
+  const cm={'Kain':'c-kain','Resletting':'c-resletting','Benang':'c-benang','Interlining':'c-interlining'};
+  list.innerHTML = data.map(m => {
+    const s = parseFloat(m.stok)||0;
+    const cc = cm[m.kategori]||'c-other';
+    return `<div onclick="pilihStokMat('${m.barcode}','${m.nama.replace(/'/g,"\\'")}','${m.kategori}','${m.satuan}',${s})"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;align-items:center;transition:.15s"
+      onmouseover="this.style.background='rgba(108,99,255,.1)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-weight:600;font-size:13px">${m.nama}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px"><span class="mc-cat ${cc}" style="font-size:10px;padding:1px 6px;border-radius:20px">${m.kategori}</span></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:700;font-size:14px;color:${s<=0?'var(--danger)':s<=10?'var(--warn)':'var(--text)'}">${s%1===0?s:s.toFixed(2)}</div>
+        <div style="font-size:11px;color:var(--muted)">${m.satuan}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pilihStokMat(barcode, nama, kategori, satuan, stok){
+  selectedStokBarcode = barcode;
+  document.getElementById('stokSearch').value = '';
+  document.getElementById('stokMatList').innerHTML = '<div style="padding:12px;text-align:center;font-size:12px;color:var(--muted)">Ketik nama untuk mencari material</div>';
+  document.getElementById('stokSelNama').textContent = nama;
+  document.getElementById('stokSelInfo').textContent = kategori + ' · Stok saat ini: ' + (stok%1===0?stok:stok.toFixed(2)) + ' ' + satuan;
+  document.getElementById('stokSelected').style.display = 'block';
+  document.getElementById('stokQty').focus();
+  clearAlert('stokAlert');
+}
+
+function clearStokSelected(){
+  selectedStokBarcode = '';
+  document.getElementById('stokSelected').style.display = 'none';
+  document.getElementById('stokSearch').value = '';
+  document.getElementById('stokMatList').innerHTML = '<div style="padding:12px;text-align:center;font-size:12px;color:var(--muted)">Ketik nama untuk mencari material</div>';
+  clearAlert('stokAlert');
+}
+
+function resetFormStok(){
+  clearStokSelected();
+  document.getElementById('stokQty').value = '';
+  document.getElementById('stokKet').value = '';
+}
+
+async function tambahStok(){
+  if (!selectedStokBarcode) { showAlert('stokAlert','alert-err','Pilih material dulu'); return; }
+  const qty = parseFloat(document.getElementById('stokQty').value);
+  const ket = document.getElementById('stokKet').value.trim();
+  if (!qty || qty <= 0) { showAlert('stokAlert','alert-err','Jumlah harus lebih dari 0'); return; }
+  if (!GAS_URL) { showAlert('stokAlert','alert-err','Google Sheets belum terhubung'); return; }
+  showAlert('stokAlert','alert-info','⏳ Menyimpan...');
+  try {
+    const res = await gasPost({ action:'inbound', barcode:selectedStokBarcode, jumlah:qty, keterangan:ket||'Tambah stok manual' });
+    if (res.status==='ok') {
+      showAlert('stokAlert','alert-ok','✓ Stok berhasil ditambah! ' + res.nama + ' sekarang: ' + res.stokBaru + ' ' + res.satuan);
+      document.getElementById('stokQty').value = '';
+      document.getElementById('stokKet').value = '';
+      // Update preview stok di selected box
+      const m = allMaterials.find(x=>String(x.barcode)===selectedStokBarcode);
+      if (m) { m.stok = res.stokBaru; document.getElementById('stokSelInfo').textContent = m.kategori + ' · Stok saat ini: ' + res.stokBaru + ' ' + res.satuan; }
+      loadData();
+    } else {
+      showAlert('stokAlert','alert-err','✗ ' + res.message);
+    }
+  } catch(e) { showAlert('stokAlert','alert-err','Gagal terhubung ke Sheets'); }
+}
+
+async function tambahMaterial(){
+  const barcode=document.getElementById('fBarcode').value.trim(),nama=document.getElementById('fNama').value.trim();
+  if(!barcode||!nama){showAlert('addAlert','alert-err','Barcode dan nama wajib diisi');return;}
+  if(!GAS_URL){showAlert('addAlert','alert-err','Google Sheets belum terhubung');return;}
+  showAlert('addAlert','alert-info','⏳ Menyimpan...');
+  try{const res=await gasPost({action:'addMaterial',barcode,nama,kategori:document.getElementById('fKat').value,satuan:document.getElementById('fSat').value,stokAwal:parseFloat(document.getElementById('fStok').value)||0});
+    if(res.status==='ok'){showAlert('addAlert','alert-ok','✓ '+res.message);['fBarcode','fNama','fStok'].forEach(id=>document.getElementById(id).value='');loadData();}
+    else showAlert('addAlert','alert-err','✗ '+res.message);
+  }catch(e){showAlert('addAlert','alert-err','Gagal terhubung ke Sheets');}
+}
+
+async function gasPost(b){const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(b),headers:{'Content-Type':'text/plain'}});return r.json();}
+async function gasGet(a){const r=await fetch(GAS_URL+'?action='+a+'&t='+Date.now(),{redirect:'follow'});return r.json();}
+function showAlert(id,cls,msg){const e=document.getElementById(id);e.className='alert '+cls+' show';e.textContent=msg;}
+function clearAlert(id){const e=document.getElementById(id);e.className='alert';e.textContent='';}
+function genCode(p){return(p||'MAT')+'-'+Date.now().toString(36).toUpperCase().slice(-8);}
+</script>
+</body>
+</html>
